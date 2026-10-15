@@ -10,6 +10,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
 
 @Configuration
 @EnableWebSecurity
@@ -32,15 +33,22 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+
+        // prevent saving the original request so no redirect loop
+        HttpSessionRequestCache requestCache = new HttpSessionRequestCache();
+        requestCache.setMatchingRequestParameterName(null);
+
         http
-            .csrf(csrf -> csrf.disable()) // disable CSRF — safe for internal tool behind login
+            .csrf(csrf -> csrf.disable())
+            .requestCache(cache -> cache.requestCache(requestCache))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/login", "/error").permitAll()
                 .anyRequest().authenticated()
             )
             .formLogin(form -> form
                 .loginPage("/login")
-                .defaultSuccessUrl("/", true)
+                .defaultSuccessUrl("/", true) // always go to / after login
+                .failureUrl("/login?error")
                 .permitAll()
             )
             .logout(logout -> logout
