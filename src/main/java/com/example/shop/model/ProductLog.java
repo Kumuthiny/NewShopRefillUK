@@ -1,6 +1,7 @@
 package com.example.shop.model;
 
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 import java.time.LocalDateTime;
 
@@ -10,6 +11,7 @@ public class ProductLog {
     @Id
     private String id;
 
+    @Indexed
     private String productId;
     private String productName;
     private String shopName;
@@ -18,6 +20,7 @@ public class ProductLog {
     private String action;
 
     private String performedBy;
+    @Indexed
     private LocalDateTime performedAt;
     private Integer refillAmount;
 
