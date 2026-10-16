@@ -7,17 +7,17 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <style>
-        .product-row { transition: background 0.2s; }
         .need-refill-row { background: #fff8f0; border-left: 4px solid #fd7e14 !important; }
-        .badge-cat { font-size: 11px; }
+        .product-img { width: 52px; height: 52px; object-fit: cover; border-radius: 8px; }
+        .img-placeholder { width: 52px; height: 52px; border-radius: 8px; background: #e9ecef;
+                           display:flex; align-items:center; justify-content:center; color:#adb5bd; font-size:20px; }
+        .editor-info { font-size: 12px; color: #0d6efd; }
         .meta-text { font-size: 12px; color: #888; }
-        .editor-info { font-size: 12px; color: #0d6efd; font-weight: 500; }
+        #imagePreview { max-width: 80px; max-height: 80px; border-radius: 8px; display:none; margin-top:6px; }
     </style>
 </head>
-
 <body class="bg-light">
 
-<!-- NAVBAR -->
 <nav class="navbar navbar-dark bg-primary shadow-sm mb-4">
     <div class="container">
         <a class="navbar-brand fw-bold" href="/">
@@ -41,27 +41,34 @@
         <div class="card-body p-4">
             <h6 class="fw-bold mb-3"><i class="bi bi-plus-circle me-2 text-success"></i>Add New Item</h6>
 
-            <form th:action="@{/products/add}" method="post" class="row g-2 align-items-end">
+            <form th:action="@{/products/add}" method="post" enctype="multipart/form-data" class="row g-2 align-items-end">
                 <input type="hidden" name="shopId" th:value="${shop.id}">
 
-                <div class="col-md-3">
-                    <label class="form-label small text-muted">Item Name</label>
+                <div class="col-md-2">
+                    <label class="form-label small text-muted">Item Name *</label>
                     <input type="text" name="name" class="form-control" placeholder="e.g. Rice" required>
                 </div>
-
-                <div class="col-md-3">
-                    <label class="form-label small text-muted">Category (optional)</label>
+                <div class="col-md-2">
+                    <label class="form-label small text-muted">Category</label>
                     <input type="text" name="category" class="form-control" placeholder="e.g. Groceries">
                 </div>
-
-                <div class="col-md-3">
-                    <label class="form-label small text-muted">Your Name</label>
+                <div class="col-md-2">
+                    <label class="form-label small text-muted">Details</label>
+                    <input type="text" name="details" class="form-control" placeholder="Optional notes">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small text-muted">Your Name *</label>
                     <input type="text" name="addedBy" class="form-control" placeholder="Worker name" required>
                 </div>
-
-                <div class="col-md-3">
+                <div class="col-md-2">
+                    <label class="form-label small text-muted">Image</label>
+                    <input type="file" name="image" class="form-control" accept="image/*"
+                           onchange="previewImage(this)">
+                    <img id="imagePreview" src="#" alt="preview">
+                </div>
+                <div class="col-md-2">
                     <button type="submit" class="btn btn-success w-100">
-                        <i class="bi bi-plus-lg me-1"></i> Add Item
+                        <i class="bi bi-plus-lg me-1"></i> Add
                     </button>
                 </div>
             </form>
@@ -71,65 +78,67 @@
     <!-- PRODUCT LIST -->
     <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
         <div class="card-header bg-white border-0 pt-3 pb-2 px-4">
-            <h6 class="fw-bold mb-0"><i class="bi bi-box-seam me-2 text-primary"></i>Product List</h6>
+            <h6 class="fw-bold mb-0"><i class="bi bi-box-seam me-2 text-primary"></i>Products</h6>
         </div>
 
         <div th:if="${products.empty}" class="text-center text-muted py-5">
-            <i class="bi bi-inbox fs-2 d-block mb-2"></i>
-            No items yet. Add your first product above.
+            <i class="bi bi-inbox fs-2 d-block mb-2"></i>No items yet.
         </div>
 
         <div th:each="p : ${products}"
              th:classappend="${p.status == 'NEED_REFILL'} ? 'need-refill-row' : ''"
-             class="product-row border-bottom px-4 py-3">
+             class="border-bottom px-4 py-3">
 
             <div class="row align-items-center g-2">
 
-                <!-- PRODUCT INFO -->
-                <div class="col-md-4">
-                    <div class="fw-semibold">
-                        <span th:text="${p.name}"></span>
-                        <span th:if="${p.category != null}"
-                              class="badge bg-secondary badge-cat ms-1"
-                              th:text="${p.category}"></span>
-                    </div>
-                    <div class="meta-text mt-1">
-                        Added by <strong th:text="${p.addedBy}"></strong>
-                        &nbsp;·&nbsp;
-                        <span th:text="${#temporals.format(p.addedTime, 'dd/MM/yy HH:mm')}"></span>
-                    </div>
-                    <!-- show last editor info if exists -->
-                    <div th:if="${p.updatedBy != null}" class="editor-info mt-1">
-                        <i class="bi bi-pencil-fill me-1"></i>
-                        <span th:text="${p.updatedBy}"></span>
-                        &nbsp;·&nbsp;
-                        <span th:text="${#temporals.format(p.updatedTime, 'dd/MM/yy HH:mm')}"></span>
+                <!-- IMAGE -->
+                <div class="col-auto">
+                    <img th:if="${p.imageBase64 != null}"
+                         th:src="'data:' + ${p.imageType} + ';base64,' + ${p.imageBase64}"
+                         class="product-img" alt="product">
+                    <div th:if="${p.imageBase64 == null}" class="img-placeholder">
+                        <i class="bi bi-box"></i>
                     </div>
                 </div>
 
-                <!-- REFILL STATUS BADGE -->
+                <!-- INFO -->
+                <div class="col-md-3">
+                    <div class="fw-semibold">
+                        <span th:text="${p.name}"></span>
+                        <span th:if="${p.category != null}"
+                              class="badge bg-secondary ms-1" style="font-size:11px;"
+                              th:text="${p.category}"></span>
+                    </div>
+                    <div th:if="${p.details != null}" class="text-muted small" th:text="${p.details}"></div>
+                    <div class="meta-text mt-1">
+                        Added by <strong th:text="${p.addedBy}"></strong>
+                        · <span th:text="${#temporals.format(p.addedTime, 'dd/MM/yy HH:mm')}"></span>
+                    </div>
+                    <div th:if="${p.updatedBy != null}" class="editor-info">
+                        <i class="bi bi-pencil-fill me-1"></i>
+                        <span th:text="${p.updatedBy}"></span>
+                        · <span th:text="${#temporals.format(p.updatedTime, 'dd/MM/yy HH:mm')}"></span>
+                    </div>
+                </div>
+
+                <!-- STATUS -->
                 <div class="col-md-2 text-center">
-                    <span th:if="${p.status == 'NEED_REFILL'}"
-                          class="badge bg-danger rounded-pill px-3 py-2">
-                        <i class="bi bi-exclamation-triangle-fill me-1"></i>
-                        Needs Refill
-                        &nbsp;·&nbsp;
-                        Qty: <strong th:text="${p.refillAmount != null ? p.refillAmount : 1}"></strong>
+                    <span th:if="${p.status == 'NEED_REFILL'}" class="badge bg-danger rounded-pill px-3 py-2">
+                        <i class="bi bi-exclamation-triangle-fill me-1"></i>Needs Refill
+                        · Qty: <strong th:text="${p.refillAmount != null ? p.refillAmount : 1}"></strong>
                     </span>
-                    <span th:if="${p.status == 'NORMAL'}"
-                          class="badge bg-success rounded-pill px-3 py-2">
+                    <span th:if="${p.status == 'NORMAL'}" class="badge bg-success rounded-pill px-3 py-2">
                         <i class="bi bi-check-circle-fill me-1"></i> OK
                     </span>
                 </div>
 
                 <!-- ACTIONS -->
-                <div class="col-md-6">
+                <div class="col-md-5">
                     <div class="d-flex flex-wrap gap-2 justify-content-md-end">
 
-                        <!-- MARK NEED REFILL (with amount + name) — shown when NORMAL -->
+                        <!-- NEED REFILL -->
                         <form th:if="${p.status == 'NORMAL'}"
-                              th:action="@{'/products/' + ${p.id} + '/need'}"
-                              method="post"
+                              th:action="@{'/products/' + ${p.id} + '/need'}" method="post"
                               class="d-flex gap-1 align-items-center">
                             <input type="number" name="amount" class="form-control form-control-sm"
                                    style="width:70px;" placeholder="Qty" min="1" required>
@@ -140,15 +149,12 @@
                             </button>
                         </form>
 
-                        <!-- EDIT REFILL AMOUNT — shown when NEED_REFILL -->
+                        <!-- EDIT AMOUNT -->
                         <form th:if="${p.status == 'NEED_REFILL'}"
-                              th:action="@{'/products/' + ${p.id} + '/edit-amount'}"
-                              method="post"
+                              th:action="@{'/products/' + ${p.id} + '/edit-amount'}" method="post"
                               class="d-flex gap-1 align-items-center">
                             <input type="number" name="amount" class="form-control form-control-sm"
-                                   style="width:70px;"
-                                   th:value="${p.refillAmount}"
-                                   min="1" required>
+                                   style="width:70px;" th:value="${p.refillAmount}" min="1" required>
                             <input type="text" name="updatedBy" class="form-control form-control-sm"
                                    style="width:110px;" placeholder="Your name" required>
                             <button type="submit" class="btn btn-outline-warning btn-sm">
@@ -156,10 +162,9 @@
                             </button>
                         </form>
 
-                        <!-- MARK REFILLED (done) — shown when NEED_REFILL -->
+                        <!-- REFILLED -->
                         <form th:if="${p.status == 'NEED_REFILL'}"
-                              th:action="@{'/products/' + ${p.id} + '/done'}"
-                              method="post"
+                              th:action="@{'/products/' + ${p.id} + '/done'}" method="post"
                               class="d-flex gap-1 align-items-center">
                             <input type="text" name="updatedBy" class="form-control form-control-sm"
                                    style="width:110px;" placeholder="Your name" required>
@@ -170,14 +175,12 @@
 
                         <!-- HISTORY -->
                         <a th:href="@{'/products/' + ${p.id} + '/history'}"
-                           class="btn btn-outline-secondary btn-sm"
-                           title="View history">
+                           class="btn btn-outline-secondary btn-sm" title="View history">
                             <i class="bi bi-clock-history"></i>
                         </a>
 
                         <!-- DELETE -->
-                        <form th:action="@{'/products/' + ${p.id} + '/delete'}"
-                              method="post">
+                        <form th:action="@{'/products/' + ${p.id} + '/delete'}" method="post">
                             <button type="submit" class="btn btn-outline-danger btn-sm"
                                     onclick="return confirm('Delete this item?')">
                                 <i class="bi bi-trash"></i>
@@ -186,13 +189,21 @@
 
                     </div>
                 </div>
-
             </div>
         </div>
     </div>
-
 </div>
 
+<script>
+function previewImage(input) {
+    const preview = document.getElementById('imagePreview');
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = e => { preview.src = e.target.result; preview.style.display = 'block'; };
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+</script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

@@ -9,6 +9,7 @@ import com.example.shop.repository.ShopRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -26,8 +27,8 @@ public class ProductService {
         this.logRepo = logRepo;
     }
 
-    private String sanitize(String name) {
-        return name != null && !name.trim().isEmpty() ? name.trim() : "Unknown";
+    private String sanitize(String val) {
+        return val != null && !val.trim().isEmpty() ? val.trim() : null;
     }
 
     private void log(Product p, String action, String performedBy, Integer amount) {
@@ -36,26 +37,29 @@ public class ProductService {
         log.setProductName(p.getName());
         log.setShopName(p.getShopName());
         log.setAction(action);
-        log.setPerformedBy(sanitize(performedBy));
+        log.setPerformedBy(performedBy != null && !performedBy.trim().isEmpty() ? performedBy.trim() : "Unknown");
         log.setPerformedAt(LocalDateTime.now());
         log.setRefillAmount(amount);
         logRepo.save(log);
     }
 
-    public Product addProduct(String name, String addedBy, String shopId, String category) {
+    public Product addProduct(String name, String addedBy, String shopId,
+                               String category, String details,
+                               String imageBase64, String imageType) {
         Shop shop = shopRepo.findById(shopId)
                 .orElseThrow(() -> new RuntimeException("Shop not found"));
 
         Product p = new Product();
         p.setName(name);
-        p.setAddedBy(sanitize(addedBy));
+        p.setAddedBy(addedBy != null && !addedBy.trim().isEmpty() ? addedBy.trim() : "Unknown");
         p.setAddedTime(LocalDateTime.now());
         p.setStatus("NORMAL");
         p.setShopId(shop.getId());
         p.setShopName(shop.getName());
-        if (category != null && !category.trim().isEmpty()) {
-            p.setCategory(category.trim());
-        }
+        p.setCategory(sanitize(category));
+        p.setDetails(sanitize(details));
+        p.setImageBase64(imageBase64);
+        p.setImageType(imageType);
         productRepo.save(p);
         log(p, "ADDED", addedBy, null);
         return p;
@@ -68,7 +72,7 @@ public class ProductService {
         int qty = amount != null && amount > 0 ? amount : 1;
         p.setStatus("NEED_REFILL");
         p.setRefillAmount(qty);
-        p.setUpdatedBy(sanitize(updatedBy));
+        p.setUpdatedBy(updatedBy != null && !updatedBy.trim().isEmpty() ? updatedBy.trim() : "Unknown");
         p.setUpdatedTime(LocalDateTime.now());
         productRepo.save(p);
         log(p, "NEED_REFILL", updatedBy, qty);
@@ -81,7 +85,7 @@ public class ProductService {
 
         int qty = amount != null && amount > 0 ? amount : (p.getRefillAmount() != null ? p.getRefillAmount() : 1);
         p.setRefillAmount(qty);
-        p.setUpdatedBy(sanitize(updatedBy));
+        p.setUpdatedBy(updatedBy != null && !updatedBy.trim().isEmpty() ? updatedBy.trim() : "Unknown");
         p.setUpdatedTime(LocalDateTime.now());
         productRepo.save(p);
         log(p, "AMOUNT_UPDATED", updatedBy, qty);
@@ -95,7 +99,7 @@ public class ProductService {
         log(p, "REFILLED", updatedBy, p.getRefillAmount());
         p.setStatus("NORMAL");
         p.setRefillAmount(null);
-        p.setUpdatedBy(sanitize(updatedBy));
+        p.setUpdatedBy(updatedBy != null && !updatedBy.trim().isEmpty() ? updatedBy.trim() : "Unknown");
         p.setUpdatedTime(LocalDateTime.now());
         return productRepo.save(p);
     }
@@ -113,17 +117,20 @@ public class ProductService {
         return productRepo.findByStatus("NEED_REFILL");
     }
 
+    // refill items first, then normal — sorted by status
     public List<Product> getProductsByShop(String shopId) {
-        return productRepo.findByShopId(shopId);
+        return productRepo.findByShopId(shopId)
+                .stream()
+                .sorted(Comparator.comparing(p -> "NEED_REFILL".equals(p.getStatus()) ? 0 : 1))
+                .collect(Collectors.toList());
     }
 
     public void deleteProduct(String id) {
-        logRepo.findByProductIdOrderByPerformedAtDesc(id).forEach(l -> logRepo.delete(l));
+        logRepo.findByProductIdOrderByPerformedAtDesc(id).forEach(logRepo::delete);
         productRepo.deleteById(id);
     }
 
     public int getTotalRefillQuantity() {
-        // count of distinct products needing refill (not sum of quantities)
         return (int) productRepo.findByStatus("NEED_REFILL").stream().count();
     }
 
@@ -136,17 +143,12 @@ public class ProductService {
     }
 
     public Map<String, Integer> getShopRefillMap() {
-        // count of products needing refill per shop (not sum of quantities)
         return productRepo.findByStatus("NEED_REFILL")
                 .stream()
                 .filter(p -> p.getShopId() != null)
-                .collect(Collectors.groupingBy(
-                        Product::getShopId,
-                        Collectors.summingInt(p -> 1)
-                ));
+                .collect(Collectors.groupingBy(Product::getShopId, Collectors.summingInt(p -> 1)));
     }
 
-    // pass refill products grouped by shop to the template
     public Map<String, List<Product>> getRefillProductsByShop() {
         return productRepo.findByStatus("NEED_REFILL")
                 .stream()

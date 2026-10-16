@@ -46,7 +46,10 @@ public class ApiController {
                 body.get("name"),
                 body.get("addedBy"),
                 body.get("shopId"),
-                body.get("category")
+                body.get("category"),
+                body.get("details"),
+                body.get("imageBase64"),
+                body.get("imageType")
         );
     }
 
