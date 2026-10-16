@@ -7,4 +7,5 @@ services:
     startCommand: "java -jar target/shop-0.0.1-SNAPSHOT.jar"
     envVars:
       - key: MONGODB_URI
+        value: mongodb://localhost:27017/shop_db
         sync: false
