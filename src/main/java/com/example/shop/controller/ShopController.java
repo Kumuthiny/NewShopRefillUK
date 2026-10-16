@@ -21,11 +21,12 @@ public class ShopController {
     public String home(Model model) {
         try {
             model.addAttribute("shops", shopService.getAllShops());
-            model.addAttribute("refillProducts", productService.getRefillProducts());
-            model.addAttribute("shopCount", productService.countShopsWithRefill());
-            model.addAttribute("totalQuantity", productService.getTotalRefillQuantity());
-            model.addAttribute("shopRefillMap", productService.getShopRefillMap());
-            model.addAttribute("refillByShop", productService.getRefillProductsByShop());
+            var stats = productService.getRefillStats();
+            model.addAttribute("refillProducts", stats.refillProducts());
+            model.addAttribute("shopCount", stats.shopCount());
+            model.addAttribute("totalQuantity", stats.totalQuantity());
+            model.addAttribute("shopRefillMap", stats.shopRefillMap());
+            model.addAttribute("refillByShop", stats.refillByShop());
             model.addAttribute("totalShops", shopService.getAllShops().size());
         } catch (Exception e) {
             model.addAttribute("shops", java.util.Collections.emptyList());

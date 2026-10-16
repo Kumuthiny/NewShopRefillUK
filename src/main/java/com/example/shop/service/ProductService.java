@@ -117,6 +117,26 @@ public class ProductService {
         return productRepo.findByStatus("NEED_REFILL");
     }
 
+    // Optimized method that returns all refill statistics in one query
+    public RefillStats getRefillStats() {
+        List<Product> refillProducts = productRepo.findByStatus("NEED_REFILL");
+        return new RefillStats(
+                refillProducts,
+                refillProducts.size(),
+                refillProducts.stream()
+                        .map(Product::getShopId)
+                        .filter(id -> id != null)
+                        .distinct()
+                        .count(),
+                refillProducts.stream()
+                        .filter(p -> p.getShopId() != null)
+                        .collect(Collectors.groupingBy(Product::getShopId, Collectors.summingInt(p -> 1))),
+                refillProducts.stream()
+                        .filter(p -> p.getShopId() != null)
+                        .collect(Collectors.groupingBy(Product::getShopId))
+        );
+    }
+
     // refill items first, then normal — sorted by status
     public List<Product> getProductsByShop(String shopId) {
         return productRepo.findByShopId(shopId)
