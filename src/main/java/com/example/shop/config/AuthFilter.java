@@ -20,8 +20,8 @@ public class AuthFilter extends OncePerRequestFilter {
 
         String path = request.getRequestURI();
 
-        // always allow login page and static assets
-        if (path.equals("/login") || path.startsWith("/css") || path.startsWith("/js")
+        // always allow login page, logout, and static assets
+        if (path.equals("/login") || path.startsWith("/logout") || path.startsWith("/css") || path.startsWith("/js")
                 || path.startsWith("/api") || path.equals("/error") || path.startsWith("/error")) {
             chain.doFilter(request, response);
             return;

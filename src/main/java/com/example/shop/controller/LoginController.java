@@ -1,5 +1,6 @@
 package com.example.shop.controller;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -19,10 +20,12 @@ public class LoginController {
     @PostMapping("/login")
     public String doLogin(@RequestParam String username,
                           @RequestParam String password,
-                          HttpSession session,
+                          HttpServletRequest request,
                           Model model) {
 
         if (USERNAME.equals(username) && PASSWORD.equals(password)) {
+            // Ensure session is created
+            HttpSession session = request.getSession(true);
             session.setAttribute("loggedIn", true);
             // redirect to dashboard
             return "redirect:/";
