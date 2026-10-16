@@ -162,7 +162,7 @@
                                     </td>
                                     <td class="text-muted small">
                                         <span th:if="${p.updatedTime != null}"
-                                              th:text="${#temporals.format(p.updatedTime, 'dd/MM/yy HH:mm')}"></span>
+                                              th:text="${p.updatedTime.toString().substring(0,16).replace('T',' ')}"></span>
                                         <span th:if="${p.updatedTime == null}">—</span>
                                     </td>
                                 </tr>

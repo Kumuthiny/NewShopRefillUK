@@ -24,6 +24,7 @@ public class LoginController {
 
         if (USERNAME.equals(username) && PASSWORD.equals(password)) {
             session.setAttribute("loggedIn", true);
+            // redirect to dashboard
             return "redirect:/";
         }
 

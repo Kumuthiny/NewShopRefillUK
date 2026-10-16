@@ -37,7 +37,7 @@
             Shop: <strong th:text="${product.shopName}"></strong>
             &nbsp;·&nbsp;
             Added by <strong th:text="${product.addedBy}"></strong>
-            on <span th:text="${#temporals.format(product.addedTime, 'dd/MM/yy HH:mm')}"></span>
+            on <span th:text="${product.addedTime.toString().substring(0,16).replace('T',' ')}"></span>
         </div>
     </div>
 

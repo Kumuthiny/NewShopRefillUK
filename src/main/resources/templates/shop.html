@@ -112,12 +112,12 @@
                     <div th:if="${p.details != null}" class="text-muted small" th:text="${p.details}"></div>
                     <div class="meta-text mt-1">
                         Added by <strong th:text="${p.addedBy}"></strong>
-                        · <span th:text="${#temporals.format(p.addedTime, 'dd/MM/yy HH:mm')}"></span>
+                        · <span th:text="${p.addedTime.toString().substring(0,16).replace('T',' ')}"></span>
                     </div>
                     <div th:if="${p.updatedBy != null}" class="editor-info">
                         <i class="bi bi-pencil-fill me-1"></i>
                         <span th:text="${p.updatedBy}"></span>
-                        · <span th:text="${#temporals.format(p.updatedTime, 'dd/MM/yy HH:mm')}"></span>
+                        · <span th:text="${p.updatedTime.toString().substring(0,16).replace('T',' ')}"></span>
                     </div>
                 </div>
 
