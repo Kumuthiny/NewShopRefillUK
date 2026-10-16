@@ -1,5 +1,6 @@
 package com.example.shop.service;
 
+import com.example.shop.dto.RefillStats;
 import com.example.shop.model.Product;
 import com.example.shop.model.ProductLog;
 import com.example.shop.model.Shop;
