@@ -34,7 +34,7 @@
     </div>
 
     <!-- error -->
-    <div th:if="${param.error}"
+    <div th:if="${error}"
          class="alert alert-danger py-2 small text-center rounded-3">
         Invalid username or password.
     </div>
@@ -45,7 +45,7 @@
         You have been signed out.
     </div>
 
-    <form th:action="@{/login}" method="post">
+    <form action="/login" method="post">
 
         <div class="mb-3">
             <label class="form-label small text-muted">Username</label>
