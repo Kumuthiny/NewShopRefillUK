@@ -19,13 +19,23 @@ public class ShopController {
 
     @GetMapping("/")
     public String home(Model model) {
-        model.addAttribute("shops", shopService.getAllShops());
-        model.addAttribute("refillProducts", productService.getRefillProducts());
-        model.addAttribute("shopCount", productService.countShopsWithRefill());
-        model.addAttribute("totalQuantity", productService.getTotalRefillQuantity());
-        model.addAttribute("shopRefillMap", productService.getShopRefillMap());
-        model.addAttribute("refillByShop", productService.getRefillProductsByShop());
-        model.addAttribute("totalShops", shopService.getAllShops().size());
+        try {
+            model.addAttribute("shops", shopService.getAllShops());
+            model.addAttribute("refillProducts", productService.getRefillProducts());
+            model.addAttribute("shopCount", productService.countShopsWithRefill());
+            model.addAttribute("totalQuantity", productService.getTotalRefillQuantity());
+            model.addAttribute("shopRefillMap", productService.getShopRefillMap());
+            model.addAttribute("refillByShop", productService.getRefillProductsByShop());
+            model.addAttribute("totalShops", shopService.getAllShops().size());
+        } catch (Exception e) {
+            model.addAttribute("shops", java.util.Collections.emptyList());
+            model.addAttribute("refillProducts", java.util.Collections.emptyList());
+            model.addAttribute("shopCount", 0);
+            model.addAttribute("totalQuantity", 0);
+            model.addAttribute("shopRefillMap", java.util.Collections.emptyMap());
+            model.addAttribute("refillByShop", java.util.Collections.emptyMap());
+            model.addAttribute("totalShops", 0);
+        }
         return "index";
     }
 

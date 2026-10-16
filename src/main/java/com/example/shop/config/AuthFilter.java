@@ -22,7 +22,7 @@ public class AuthFilter extends OncePerRequestFilter {
 
         // always allow login page and static assets
         if (path.equals("/login") || path.startsWith("/css") || path.startsWith("/js")
-                || path.startsWith("/api") || path.equals("/error")) {
+                || path.startsWith("/api") || path.equals("/error") || path.startsWith("/error")) {
             chain.doFilter(request, response);
             return;
         }
