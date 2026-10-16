@@ -1,6 +1,7 @@
 package com.example.shop.model;
 
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 import java.time.LocalDateTime;
 
@@ -20,6 +21,7 @@ public class Product {
     private String updatedBy;
     private LocalDateTime updatedTime;
 
+    @Indexed
     private String status; // NORMAL / NEED_REFILL
     private Integer refillAmount;
 
@@ -27,6 +29,7 @@ public class Product {
     private String imageBase64;
     private String imageType; // e.g. image/jpeg
 
+    @Indexed
     private String shopId;
     private String shopName;
 
